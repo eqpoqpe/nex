@@ -1,0 +1,6 @@
+{
+    "[csharp]": {
+        "editor.maxTokenizationLineLength": 2500,
+        "editor.defaultFormatter": "csharpier.csharpier-vscode"
+    }
+}
