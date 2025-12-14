@@ -1,6 +1,6 @@
 ﻿using static Nex.Commands.RunCommandBuilder;
 
-var rootCommand = new RootCommand("The Fantastic tool for .NET");
+var rootCommand = new RootCommand("A fantastic tool for .NET");
 
 // nex run --example [name] -- [args...]
 var runCommand = CreateRunCommand();
