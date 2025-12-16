@@ -31,6 +31,13 @@ public static class RunCommandBuilder
             Description = "Build configuration passed to dotnet run.",
             DefaultValueFactory = _ => "Debug",
         };
+        var dotnetOptionsOption = new Option<string[]>(name: "--native", aliases: ["-n"])
+        {
+            Description = "Additional options forwarded to dotnet run (repeatable).",
+            AllowMultipleArgumentsPerToken = true,
+            Arity = ArgumentArity.ZeroOrMore,
+            DefaultValueFactory = _ => [],
+        };
         var frameworkOption = new Option<string?>("--framework")
         {
             Description = "Target framework passed to dotnet run (optional).",
@@ -56,6 +63,7 @@ public static class RunCommandBuilder
 
         runCommand.Options.Add(rootOption);
         runCommand.Options.Add(configurationOption);
+        runCommand.Options.Add(dotnetOptionsOption);
         runCommand.Options.Add(frameworkOption);
         runCommand.Options.Add(exampleOption);
         runCommand.Arguments.Add(exampleArgs);
@@ -67,6 +75,7 @@ public static class RunCommandBuilder
                 var cfg = parseResult.GetValue(configurationOption)!;
                 var fw = parseResult.GetValue(frameworkOption);
                 var name = parseResult.GetValue(exampleOption); // string?
+                var dotnetOpts = parseResult.GetValue(dotnetOptionsOption) ?? [];
                 var passThru = parseResult.GetValue(exampleArgs) ?? [];
 
                 var dotnetMajor = GetDotNetSdkMajorVersion();
@@ -118,7 +127,7 @@ public static class RunCommandBuilder
                     }
                 }
 
-                return await RunDotNetRunAsync(target, cfg, fw, passThru, ct);
+                return await RunDotNetRunAsync(target, cfg, fw, dotnetOpts, passThru, ct);
             }
         );
 
@@ -262,6 +271,7 @@ public static class RunCommandBuilder
         ExampleTarget target,
         string configuration,
         string? framework,
+        string[] dotnetOptions,
         string[] passThroughArgs,
         CancellationToken ct
     )
@@ -283,6 +293,13 @@ public static class RunCommandBuilder
         {
             psi.ArgumentList.Add("--framework");
             psi.ArgumentList.Add(framework);
+        }
+        foreach (var opt in dotnetOptions)
+        {
+            if (string.IsNullOrWhiteSpace(opt))
+                continue;
+
+            psi.ArgumentList.Add(opt);
         }
 
         switch (target.Kind)
